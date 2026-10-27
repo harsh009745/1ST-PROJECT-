@@ -1,0 +1,6 @@
+{
+  "name": "Aaditya | Link-in-Bio & UPI Payments",
+  "description": "Original link-in-bio profile with service booking and verified UPI payments via Razorpay.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

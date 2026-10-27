@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document storing registration details, role, and verification status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 255 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "phoneNumber": { "type": "string", "maxLength": 30 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "emailVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A 45-minute virtual facial aesthetics consultation session",
+      "type": "object",
+      "properties": {
+        "bookingReference": { "type": "string", "maxLength": 64 },
+        "serviceId": { "type": "string", "maxLength": 64 },
+        "serviceName": { "type": "string", "maxLength": 120 },
+        "durationMinutes": { "type": "number" },
+        "date": { "type": "string", "maxLength": 20 },
+        "timeSlot": { "type": "string", "maxLength": 60 },
+        "slotKey": { "type": "string", "maxLength": 80 },
+        "amountINR": { "type": "number" },
+        "amountPaise": { "type": "number" },
+        "currency": { "type": "string", "enum": ["INR"] },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 255 },
+        "customer": { "type": "object" },
+        "status": {
+          "type": "string",
+          "enum": ["AWAITING_PAYMENT", "PAYMENT_PENDING", "PAYMENT_CONFIRMED", "FAILED", "CANCELLED"]
+        },
+        "reservationExpiresAt": { "type": "string", "maxLength": 50 },
+        "meetingUrl": { "type": "string", "maxLength": 500 },
+        "meetingInstructions": { "type": "string", "maxLength": 1000 },
+        "razorpayOrderId": { "type": "string", "maxLength": 100 },
+        "razorpayPaymentId": { "type": "string", "maxLength": 100 },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "vpa": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["bookingReference", "serviceId", "serviceName", "date", "timeSlot", "status"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Administrator record for Attribute-Based Access Control (ABAC)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 255 },
+        "role": { "type": "string", "enum": ["admin"] },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["userId", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles keyed by Firebase Auth UID"
+    },
+    "/bookings/{bookingReference}": {
+      "schema": "Booking",
+      "description": "Consultation booking records keyed by unique bookingReference"
+    },
+    "/admins/{userId}": {
+      "schema": "Admin",
+      "description": "Administrator records for role lookups"
+    }
+  }
+}

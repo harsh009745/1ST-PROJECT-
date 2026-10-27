@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global helper primitives
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    function existing() {
+      return resource.data;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'meetaryan027@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Default safety deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() 
+        && request.auth.uid == userId 
+        && isValidId(userId)
+        && (incoming().role == 'customer' || isAdmin());
+      allow update: if isSignedIn() 
+        && (request.auth.uid == userId || isAdmin())
+        && (!incoming().diff(existing()).affectedKeys().hasAny(['role']) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Consultation bookings
+    match /bookings/{bookingReference} {
+      allow get: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.userEmail == request.auth.token.email || 
+        isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isSignedIn() 
+        && isValidId(bookingReference)
+        && incoming().userId == request.auth.uid;
+      allow update: if isAdmin() || (
+        isSignedIn() 
+        && resource.data.userId == request.auth.uid 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['customer', 'updatedAt'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Whitelisted admin role collection for ABAC
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Connection testing endpoint
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
